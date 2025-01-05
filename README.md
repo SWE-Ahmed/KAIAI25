@@ -1,6 +1,6 @@
 ## Instructor
 
-Dr. Jean Lahoud
+[Dr. Jean Lahoud](https://www.linkedin.com/in/jean-lahoud-4179ab284/)
 
 ## Teaching Assistants
 
