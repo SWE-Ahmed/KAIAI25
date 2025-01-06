@@ -1,0 +1,588 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": []
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "source": [
+        "# 🚕 Taxi Fare Prediction Challenge\n",
+        "\n",
+        "**Dive into the world of ride-sharing economics and build a model to predict taxi trip fares!**\n",
+        "\n",
+        "This challenge leverages a realistic synthetic dataset, perfect for honing your regression skills and exploring pricing dynamics within the taxi industry.  Put your data science prowess to the test and develop a robust fare prediction model.\n",
+        "\n",
+        "[![Taxi Dataset](https://img.shields.io/badge/Dataset-Kaggle-blueviolet)](https://www.kaggle.com/datasets/denkuznetz/taxi-price-prediction)\n",
+        "\n",
+        "\n",
+        "## Dataset Overview\n",
+        "\n",
+        "This dataset simulates taxi trip data, incorporating key factors influencing fare calculation.  Your goal is to accurately predict the `Fare Amount` based on provided features.\n",
+        "\n",
+        "\n",
+        "## Feature Breakdown\n",
+        "\n",
+        "| Feature           | Description                                     | Data Type    |\n",
+        "|-------------------|-------------------------------------------------|-------------|\n",
+        "| `Distance (km)`    | Trip length                                      | Numeric     |\n",
+        "| `Pickup Time`    | Trip start time                               | DateTime    |\n",
+        "| `Dropoff Time`   | Trip end time                                | DateTime    |\n",
+        "| `Traffic Condition`| Traffic level (light, medium, heavy)           | Categorical |\n",
+        "| `Passenger Count` | Number of passengers                           | Numeric     |\n",
+        "| `Weather Condition`| Weather status (clear, rain, snow)             | Categorical |\n",
+        "| `Trip Duration (min)` | Total trip time in minutes                    | Numeric     |\n",
+        "| `Fare Amount (USD)`| **Target Variable:** The cost of the trip      | Numeric     |\n",
+        "\n",
+        "\n",
+        "\n",
+        "## Challenge Objectives\n",
+        "\n",
+        "Construct a linear regression model to predict taxi fares.  Follow these steps:\n",
+        "\n",
+        "1. **Data Ingestion & Exploration:**  Load the dataset and perform thorough Exploratory Data Analysis (EDA) to understand the data distribution, identify potential outliers, and uncover relationships between features.\n",
+        "\n",
+        "2. **Feature Engineering:**  Craft new features from the existing ones to potentially improve model performance.  Think about time-based features (hour of day, day of week), or combined features (distance/duration).\n",
+        "\n",
+        "3. **Preprocessing:**\n",
+        "    * **Data Cleaning:** Handle missing values, outliers, and any inconsistencies in the data.\n",
+        "    * **Data Splitting:** Partition the data into training and testing sets.\n",
+        "\n",
+        "4. **Model Training & Evaluation:**\n",
+        "    * Implement linear regression models using the methods that you learned today.\n",
+        "    * Consider regularization techniques (LASSO, Ridge) to prevent overfitting and improve generalization.\n",
+        "    * Evaluate model performance using appropriate metrics (e.g., RMSE, MAE, R-squared).\n",
+        "\n",
+        "\n",
+        "##  Get Started!\n",
+        "\n",
+        "Download the dataset, explore the data, and start building your predictive model! Good luck! 🚕💨"
+      ],
+      "metadata": {
+        "id": "En7DkSv2qXn7"
+      }
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## Read the data"
+      ],
+      "metadata": {
+        "id": "88zDT9dn8Ak9"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# importing libraries\n",
+        "import kagglehub\n",
+        "import pandas as pd\n",
+        "import os"
+      ],
+      "metadata": {
+        "id": "a5F8K0e-5iCV"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "Gb728UAZjsCl",
+        "outputId": "ad5da302-0574-49a0-86f9-2265f62649a9"
+      },
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Warning: Looks like you're using an outdated `kagglehub` version (installed: 0.3.5), please consider upgrading to the latest version (0.3.6).\n",
+            "Path to dataset files: /root/.cache/kagglehub/datasets/denkuznetz/taxi-price-prediction/versions/1\n"
+          ]
+        }
+      ],
+      "source": [
+        "# Download the dataset from kaggle\n",
+        "path = kagglehub.dataset_download(\"denkuznetz/taxi-price-prediction\")\n",
+        "print(\"Path to dataset files:\", path)"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Read the data using pandas\n",
+        "csv_path = os.path.join(path, \"taxi_trip_pricing.csv\")\n",
+        "taxiPricing = pd.read_csv(csv_path)\n",
+        "taxiPricing.head()"
+      ],
+      "metadata": {
+        "id": "Boh-Vp7R31VN",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 206
+        },
+        "outputId": "cfb3bb5e-2518-433c-ede7-1e4aa7204209"
+      },
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "   Trip_Distance_km Time_of_Day Day_of_Week  Passenger_Count  \\\n",
+              "0             19.35     Morning     Weekday              3.0   \n",
+              "1             47.59   Afternoon     Weekday              1.0   \n",
+              "2             36.87     Evening     Weekend              1.0   \n",
+              "3             30.33     Evening     Weekday              4.0   \n",
+              "4               NaN     Evening     Weekday              3.0   \n",
+              "\n",
+              "  Traffic_Conditions Weather  Base_Fare  Per_Km_Rate  Per_Minute_Rate  \\\n",
+              "0                Low   Clear       3.56         0.80             0.32   \n",
+              "1               High   Clear        NaN         0.62             0.43   \n",
+              "2               High   Clear       2.70         1.21             0.15   \n",
+              "3                Low     NaN       3.48         0.51             0.15   \n",
+              "4               High   Clear       2.93         0.63             0.32   \n",
+              "\n",
+              "   Trip_Duration_Minutes  Trip_Price  \n",
+              "0                  53.82     36.2624  \n",
+              "1                  40.57         NaN  \n",
+              "2                  37.27     52.9032  \n",
+              "3                 116.81     36.4698  \n",
+              "4                  22.64     15.6180  "
+            ],
+            "text/html": [
+              "\n",
+              "  <div id=\"df-0fb5de4c-f78d-4b55-b73a-117ea70e04ad\" class=\"colab-df-container\">\n",
+              "    <div>\n",
+              "<style scoped>\n",
+              "    .dataframe tbody tr th:only-of-type {\n",
+              "        vertical-align: middle;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe tbody tr th {\n",
+              "        vertical-align: top;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe thead th {\n",
+              "        text-align: right;\n",
+              "    }\n",
+              "</style>\n",
+              "<table border=\"1\" class=\"dataframe\">\n",
+              "  <thead>\n",
+              "    <tr style=\"text-align: right;\">\n",
+              "      <th></th>\n",
+              "      <th>Trip_Distance_km</th>\n",
+              "      <th>Time_of_Day</th>\n",
+              "      <th>Day_of_Week</th>\n",
+              "      <th>Passenger_Count</th>\n",
+              "      <th>Traffic_Conditions</th>\n",
+              "      <th>Weather</th>\n",
+              "      <th>Base_Fare</th>\n",
+              "      <th>Per_Km_Rate</th>\n",
+              "      <th>Per_Minute_Rate</th>\n",
+              "      <th>Trip_Duration_Minutes</th>\n",
+              "      <th>Trip_Price</th>\n",
+              "    </tr>\n",
+              "  </thead>\n",
+              "  <tbody>\n",
+              "    <tr>\n",
+              "      <th>0</th>\n",
+              "      <td>19.35</td>\n",
+              "      <td>Morning</td>\n",
+              "      <td>Weekday</td>\n",
+              "      <td>3.0</td>\n",
+              "      <td>Low</td>\n",
+              "      <td>Clear</td>\n",
+              "      <td>3.56</td>\n",
+              "      <td>0.80</td>\n",
+              "      <td>0.32</td>\n",
+              "      <td>53.82</td>\n",
+              "      <td>36.2624</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>1</th>\n",
+              "      <td>47.59</td>\n",
+              "      <td>Afternoon</td>\n",
+              "      <td>Weekday</td>\n",
+              "      <td>1.0</td>\n",
+              "      <td>High</td>\n",
+              "      <td>Clear</td>\n",
+              "      <td>NaN</td>\n",
+              "      <td>0.62</td>\n",
+              "      <td>0.43</td>\n",
+              "      <td>40.57</td>\n",
+              "      <td>NaN</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>2</th>\n",
+              "      <td>36.87</td>\n",
+              "      <td>Evening</td>\n",
+              "      <td>Weekend</td>\n",
+              "      <td>1.0</td>\n",
+              "      <td>High</td>\n",
+              "      <td>Clear</td>\n",
+              "      <td>2.70</td>\n",
+              "      <td>1.21</td>\n",
+              "      <td>0.15</td>\n",
+              "      <td>37.27</td>\n",
+              "      <td>52.9032</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>3</th>\n",
+              "      <td>30.33</td>\n",
+              "      <td>Evening</td>\n",
+              "      <td>Weekday</td>\n",
+              "      <td>4.0</td>\n",
+              "      <td>Low</td>\n",
+              "      <td>NaN</td>\n",
+              "      <td>3.48</td>\n",
+              "      <td>0.51</td>\n",
+              "      <td>0.15</td>\n",
+              "      <td>116.81</td>\n",
+              "      <td>36.4698</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>4</th>\n",
+              "      <td>NaN</td>\n",
+              "      <td>Evening</td>\n",
+              "      <td>Weekday</td>\n",
+              "      <td>3.0</td>\n",
+              "      <td>High</td>\n",
+              "      <td>Clear</td>\n",
+              "      <td>2.93</td>\n",
+              "      <td>0.63</td>\n",
+              "      <td>0.32</td>\n",
+              "      <td>22.64</td>\n",
+              "      <td>15.6180</td>\n",
+              "    </tr>\n",
+              "  </tbody>\n",
+              "</table>\n",
+              "</div>\n",
+              "    <div class=\"colab-df-buttons\">\n",
+              "\n",
+              "  <div class=\"colab-df-container\">\n",
+              "    <button class=\"colab-df-convert\" onclick=\"convertToInteractive('df-0fb5de4c-f78d-4b55-b73a-117ea70e04ad')\"\n",
+              "            title=\"Convert this dataframe to an interactive table.\"\n",
+              "            style=\"display:none;\">\n",
+              "\n",
+              "  <svg xmlns=\"http://www.w3.org/2000/svg\" height=\"24px\" viewBox=\"0 -960 960 960\">\n",
+              "    <path d=\"M120-120v-720h720v720H120Zm60-500h600v-160H180v160Zm220 220h160v-160H400v160Zm0 220h160v-160H400v160ZM180-400h160v-160H180v160Zm440 0h160v-160H620v160ZM180-180h160v-160H180v160Zm440 0h160v-160H620v160Z\"/>\n",
+              "  </svg>\n",
+              "    </button>\n",
+              "\n",
+              "  <style>\n",
+              "    .colab-df-container {\n",
+              "      display:flex;\n",
+              "      gap: 12px;\n",
+              "    }\n",
+              "\n",
+              "    .colab-df-convert {\n",
+              "      background-color: #E8F0FE;\n",
+              "      border: none;\n",
+              "      border-radius: 50%;\n",
+              "      cursor: pointer;\n",
+              "      display: none;\n",
+              "      fill: #1967D2;\n",
+              "      height: 32px;\n",
+              "      padding: 0 0 0 0;\n",
+              "      width: 32px;\n",
+              "    }\n",
+              "\n",
+              "    .colab-df-convert:hover {\n",
+              "      background-color: #E2EBFA;\n",
+              "      box-shadow: 0px 1px 2px rgba(60, 64, 67, 0.3), 0px 1px 3px 1px rgba(60, 64, 67, 0.15);\n",
+              "      fill: #174EA6;\n",
+              "    }\n",
+              "\n",
+              "    .colab-df-buttons div {\n",
+              "      margin-bottom: 4px;\n",
+              "    }\n",
+              "\n",
+              "    [theme=dark] .colab-df-convert {\n",
+              "      background-color: #3B4455;\n",
+              "      fill: #D2E3FC;\n",
+              "    }\n",
+              "\n",
+              "    [theme=dark] .colab-df-convert:hover {\n",
+              "      background-color: #434B5C;\n",
+              "      box-shadow: 0px 1px 3px 1px rgba(0, 0, 0, 0.15);\n",
+              "      filter: drop-shadow(0px 1px 2px rgba(0, 0, 0, 0.3));\n",
+              "      fill: #FFFFFF;\n",
+              "    }\n",
+              "  </style>\n",
+              "\n",
+              "    <script>\n",
+              "      const buttonEl =\n",
+              "        document.querySelector('#df-0fb5de4c-f78d-4b55-b73a-117ea70e04ad button.colab-df-convert');\n",
+              "      buttonEl.style.display =\n",
+              "        google.colab.kernel.accessAllowed ? 'block' : 'none';\n",
+              "\n",
+              "      async function convertToInteractive(key) {\n",
+              "        const element = document.querySelector('#df-0fb5de4c-f78d-4b55-b73a-117ea70e04ad');\n",
+              "        const dataTable =\n",
+              "          await google.colab.kernel.invokeFunction('convertToInteractive',\n",
+              "                                                    [key], {});\n",
+              "        if (!dataTable) return;\n",
+              "\n",
+              "        const docLinkHtml = 'Like what you see? Visit the ' +\n",
+              "          '<a target=\"_blank\" href=https://colab.research.google.com/notebooks/data_table.ipynb>data table notebook</a>'\n",
+              "          + ' to learn more about interactive tables.';\n",
+              "        element.innerHTML = '';\n",
+              "        dataTable['output_type'] = 'display_data';\n",
+              "        await google.colab.output.renderOutput(dataTable, element);\n",
+              "        const docLink = document.createElement('div');\n",
+              "        docLink.innerHTML = docLinkHtml;\n",
+              "        element.appendChild(docLink);\n",
+              "      }\n",
+              "    </script>\n",
+              "  </div>\n",
+              "\n",
+              "\n",
+              "<div id=\"df-74c1bacf-a32c-47ef-9c73-b17d09b749b3\">\n",
+              "  <button class=\"colab-df-quickchart\" onclick=\"quickchart('df-74c1bacf-a32c-47ef-9c73-b17d09b749b3')\"\n",
+              "            title=\"Suggest charts\"\n",
+              "            style=\"display:none;\">\n",
+              "\n",
+              "<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"24px\"viewBox=\"0 0 24 24\"\n",
+              "     width=\"24px\">\n",
+              "    <g>\n",
+              "        <path d=\"M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z\"/>\n",
+              "    </g>\n",
+              "</svg>\n",
+              "  </button>\n",
+              "\n",
+              "<style>\n",
+              "  .colab-df-quickchart {\n",
+              "      --bg-color: #E8F0FE;\n",
+              "      --fill-color: #1967D2;\n",
+              "      --hover-bg-color: #E2EBFA;\n",
+              "      --hover-fill-color: #174EA6;\n",
+              "      --disabled-fill-color: #AAA;\n",
+              "      --disabled-bg-color: #DDD;\n",
+              "  }\n",
+              "\n",
+              "  [theme=dark] .colab-df-quickchart {\n",
+              "      --bg-color: #3B4455;\n",
+              "      --fill-color: #D2E3FC;\n",
+              "      --hover-bg-color: #434B5C;\n",
+              "      --hover-fill-color: #FFFFFF;\n",
+              "      --disabled-bg-color: #3B4455;\n",
+              "      --disabled-fill-color: #666;\n",
+              "  }\n",
+              "\n",
+              "  .colab-df-quickchart {\n",
+              "    background-color: var(--bg-color);\n",
+              "    border: none;\n",
+              "    border-radius: 50%;\n",
+              "    cursor: pointer;\n",
+              "    display: none;\n",
+              "    fill: var(--fill-color);\n",
+              "    height: 32px;\n",
+              "    padding: 0;\n",
+              "    width: 32px;\n",
+              "  }\n",
+              "\n",
+              "  .colab-df-quickchart:hover {\n",
+              "    background-color: var(--hover-bg-color);\n",
+              "    box-shadow: 0 1px 2px rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);\n",
+              "    fill: var(--button-hover-fill-color);\n",
+              "  }\n",
+              "\n",
+              "  .colab-df-quickchart-complete:disabled,\n",
+              "  .colab-df-quickchart-complete:disabled:hover {\n",
+              "    background-color: var(--disabled-bg-color);\n",
+              "    fill: var(--disabled-fill-color);\n",
+              "    box-shadow: none;\n",
+              "  }\n",
+              "\n",
+              "  .colab-df-spinner {\n",
+              "    border: 2px solid var(--fill-color);\n",
+              "    border-color: transparent;\n",
+              "    border-bottom-color: var(--fill-color);\n",
+              "    animation:\n",
+              "      spin 1s steps(1) infinite;\n",
+              "  }\n",
+              "\n",
+              "  @keyframes spin {\n",
+              "    0% {\n",
+              "      border-color: transparent;\n",
+              "      border-bottom-color: var(--fill-color);\n",
+              "      border-left-color: var(--fill-color);\n",
+              "    }\n",
+              "    20% {\n",
+              "      border-color: transparent;\n",
+              "      border-left-color: var(--fill-color);\n",
+              "      border-top-color: var(--fill-color);\n",
+              "    }\n",
+              "    30% {\n",
+              "      border-color: transparent;\n",
+              "      border-left-color: var(--fill-color);\n",
+              "      border-top-color: var(--fill-color);\n",
+              "      border-right-color: var(--fill-color);\n",
+              "    }\n",
+              "    40% {\n",
+              "      border-color: transparent;\n",
+              "      border-right-color: var(--fill-color);\n",
+              "      border-top-color: var(--fill-color);\n",
+              "    }\n",
+              "    60% {\n",
+              "      border-color: transparent;\n",
+              "      border-right-color: var(--fill-color);\n",
+              "    }\n",
+              "    80% {\n",
+              "      border-color: transparent;\n",
+              "      border-right-color: var(--fill-color);\n",
+              "      border-bottom-color: var(--fill-color);\n",
+              "    }\n",
+              "    90% {\n",
+              "      border-color: transparent;\n",
+              "      border-bottom-color: var(--fill-color);\n",
+              "    }\n",
+              "  }\n",
+              "</style>\n",
+              "\n",
+              "  <script>\n",
+              "    async function quickchart(key) {\n",
+              "      const quickchartButtonEl =\n",
+              "        document.querySelector('#' + key + ' button');\n",
+              "      quickchartButtonEl.disabled = true;  // To prevent multiple clicks.\n",
+              "      quickchartButtonEl.classList.add('colab-df-spinner');\n",
+              "      try {\n",
+              "        const charts = await google.colab.kernel.invokeFunction(\n",
+              "            'suggestCharts', [key], {});\n",
+              "      } catch (error) {\n",
+              "        console.error('Error during call to suggestCharts:', error);\n",
+              "      }\n",
+              "      quickchartButtonEl.classList.remove('colab-df-spinner');\n",
+              "      quickchartButtonEl.classList.add('colab-df-quickchart-complete');\n",
+              "    }\n",
+              "    (() => {\n",
+              "      let quickchartButtonEl =\n",
+              "        document.querySelector('#df-74c1bacf-a32c-47ef-9c73-b17d09b749b3 button');\n",
+              "      quickchartButtonEl.style.display =\n",
+              "        google.colab.kernel.accessAllowed ? 'block' : 'none';\n",
+              "    })();\n",
+              "  </script>\n",
+              "</div>\n",
+              "\n",
+              "    </div>\n",
+              "  </div>\n"
+            ],
+            "application/vnd.google.colaboratory.intrinsic+json": {
+              "type": "dataframe",
+              "variable_name": "taxiPricing",
+              "summary": "{\n  \"name\": \"taxiPricing\",\n  \"rows\": 1000,\n  \"fields\": [\n    {\n      \"column\": \"Trip_Distance_km\",\n      \"properties\": {\n        \"dtype\": \"number\",\n        \"std\": 19.905299790562722,\n        \"min\": 1.23,\n        \"max\": 146.0670471598387,\n        \"num_unique_values\": 867,\n        \"samples\": [\n          39.04,\n          19.37,\n          49.36\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"Time_of_Day\",\n      \"properties\": {\n        \"dtype\": \"category\",\n        \"num_unique_values\": 4,\n        \"samples\": [\n          \"Afternoon\",\n          \"Night\",\n          \"Morning\"\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"Day_of_Week\",\n      \"properties\": {\n        \"dtype\": \"category\",\n        \"num_unique_values\": 2,\n        \"samples\": [\n          \"Weekend\",\n          \"Weekday\"\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"Passenger_Count\",\n      \"properties\": {\n        \"dtype\": \"number\",\n        \"std\": 1.1022491262257013,\n        \"min\": 1.0,\n        \"max\": 4.0,\n        \"num_unique_values\": 4,\n        \"samples\": [\n          1.0,\n          2.0\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"Traffic_Conditions\",\n      \"properties\": {\n        \"dtype\": \"category\",\n        \"num_unique_values\": 3,\n        \"samples\": [\n          \"Low\",\n          \"High\"\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"Weather\",\n      \"properties\": {\n        \"dtype\": \"category\",\n        \"num_unique_values\": 3,\n        \"samples\": [\n          \"Clear\",\n          \"Rain\"\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"Base_Fare\",\n      \"properties\": {\n        \"dtype\": \"number\",\n        \"std\": 0.8701619278680248,\n        \"min\": 2.01,\n        \"max\": 5.0,\n        \"num_unique_values\": 290,\n        \"samples\": [\n          3.35,\n          3.62\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"Per_Km_Rate\",\n      \"properties\": {\n        \"dtype\": \"number\",\n        \"std\": 0.4298158687087343,\n        \"min\": 0.5,\n        \"max\": 2.0,\n        \"num_unique_values\": 150,\n        \"samples\": [\n          0.96,\n          0.82\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"Per_Minute_Rate\",\n      \"properties\": {\n        \"dtype\": \"number\",\n        \"std\": 0.11559177133688461,\n        \"min\": 0.1,\n        \"max\": 0.5,\n        \"num_unique_values\": 41,\n        \"samples\": [\n          0.42,\n          0.25\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"Trip_Duration_Minutes\",\n      \"properties\": {\n        \"dtype\": \"number\",\n        \"std\": 32.1544064686338,\n        \"min\": 5.01,\n        \"max\": 119.84,\n        \"num_unique_values\": 917,\n        \"samples\": [\n          72.77,\n          95.55\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"Trip_Price\",\n      \"properties\": {\n        \"dtype\": \"number\",\n        \"std\": 40.46979055020966,\n        \"min\": 6.1269,\n        \"max\": 332.0436886774302,\n        \"num_unique_values\": 951,\n        \"samples\": [\n          31.3844,\n          97.4848\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    }\n  ]\n}"
+            }
+          },
+          "metadata": {},
+          "execution_count": 8
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## Perform Exploratory Data Analysis (EDA)\n",
+        "\n"
+      ],
+      "metadata": {
+        "id": "LqfO_3Se8iHg"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Show plots and heatmaps"
+      ],
+      "metadata": {
+        "id": "uQ8OGHuo7cTX"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## Do Feature Engineering"
+      ],
+      "metadata": {
+        "id": "H5glbkep87cS"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Add, edit, and remove features, if applicable."
+      ],
+      "metadata": {
+        "id": "mVNrlcW19AbB"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## Preprocess the data"
+      ],
+      "metadata": {
+        "id": "NkEpHi-v9Do-"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Show missing values, clean the data, split it to train and test sets"
+      ],
+      "metadata": {
+        "id": "a_WAQtAF9E7_"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## Train regression models"
+      ],
+      "metadata": {
+        "id": "WhuvnQiA9MKP"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Fit the data in your models and evaluate them.\n",
+        "# Apply the techniques you learned today, including implementation using only NumPy and implementation using sklearn."
+      ],
+      "metadata": {
+        "id": "zwvOwvbW9NNA"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "This challenge is made by [Ali Alqutayfi](https://www.linkedin.com/in/ali-alqutayfi/)."
+      ],
+      "metadata": {
+        "id": "Ykby6_AKAsHv"
+      }
+    }
+  ]
+}
