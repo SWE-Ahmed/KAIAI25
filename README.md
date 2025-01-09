@@ -1,3 +1,6 @@
+# EXAMINATION LINK!
+[Clich here](https://naeemullah-khan.github.io/IA125/Exam)
+
 ## Instructor
 
 [Dr. Jean Lahoud](https://www.linkedin.com/in/jean-lahoud-4179ab284/)
