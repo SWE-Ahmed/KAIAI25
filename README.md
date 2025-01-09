@@ -11,7 +11,7 @@
 - [Ali Alqutayfi](https://www.linkedin.com/in/ali-alqutayfi)
 - [Hassain Alsayhah](https://www.linkedin.com/in/hassain-alsayhah)
 - [Daniel Alsadiq](https://www.linkedin.com/in/daniel-alsadiq-633589298?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app)
-- [Abdullah Jan]
+- [Abdullah Jan](https://www.linkedin.com/in/abdullah-jan-929694298)
 - [Sameer Alsabea](https://www.linkedin.com/in/sameer-alsabea-610291239/)
 - [Rawan Alshayib](https://www.linkedin.com/in/rawan-i-alshayib-a6ba17212?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=ios_app)
 - [Mozn Alshehri](https://www.linkedin.com/in/mozn-alshehri-98b440302?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=ios_app)
